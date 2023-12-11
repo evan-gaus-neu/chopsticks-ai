@@ -274,16 +274,16 @@ def getPossibleNextStatesForDefaultRules(currentState):
 
     # ---> SUICIDES --- --- ---
     # If right and left are nonzero, they can be combined to either hand
-    # if left != 0 and right != 0 and total < 5:
-    #     if currentState.turn == 1:
-    #         newState1 = GameState(0, total, currentState.player2Left, currentState.player2Right, nextTurn)
-    #         newState2 = GameState(total, 0, currentState.player2Left, currentState.player2Right, nextTurn)
-    #     else:
-    #         newState1 = GameState(currentState.player1Left, currentState.player1Right, 0, total, nextTurn)
-    #         newState2 = GameState(currentState.player1Left, currentState.player1Right, total, 0, nextTurn)
-    #     # Add the new states
-    #     nextStates.append(newState1)
-    #     nextStates.append(newState2)
+    if left != 0 and right != 0 and total < 5:
+        if currentState.turn == 1:
+            newState1 = GameState(0, total, currentState.player2Left, currentState.player2Right, nextTurn)
+            newState2 = GameState(total, 0, currentState.player2Left, currentState.player2Right, nextTurn)
+        else:
+            newState1 = GameState(currentState.player1Left, currentState.player1Right, 0, total, nextTurn)
+            newState2 = GameState(currentState.player1Left, currentState.player1Right, total, 0, nextTurn)
+        # Add the new states
+        nextStates.append(newState1)
+        nextStates.append(newState2)
         
 
     # After all that, return the list of next states
@@ -292,7 +292,7 @@ def getPossibleNextStatesForDefaultRules(currentState):
 
 # Helpful values
 arbitraryHighValue = 1000
-depthLimit = 10
+depthLimit = 13
 
 def minimax(currentState, depth):
 
@@ -341,98 +341,100 @@ def assessPossibleMoves(currentState):
     return listOfNextMoveTuples
 
 
-# print("=== === === === === START === === === === ===")
-# # DEFINE THE CURRENT STATE
-# testState = GameState(1, 1, 1, 1, 1)
+print("=== === === === === START === === === === ===")
+# DEFINE THE CURRENT STATE
+testState = GameState(0, 2, 0, 1, 2)
 
-# # TESTING
+# TESTING
+possible = getPossibleNextStatesForDefaultRules(testState)
+print(f"CURRENT: {testState}")
+print(f"Length: {len(possible)}")
+print("")
+for state in possible:
+    print(state)
+print("")
+
+# print("POLICY:")
+# print(findThePolicy(testState))
+
+print("ASSESSING POSSIBLE MOVES:")
+assessment = assessPossibleMoves(testState)
+for item in assessment:
+    print(f"FOR STATE: {item[0]} --> {item[1]}")
+
+print("\n")
+
+
+# # TESTING THE NEXT STATES
+# print("Testing next states:")
+# print("=== === === === === ROUND 1 === === === === ===")
+# testState = GameState(1, 1, 1, 1, 1)
 # possible = getPossibleNextStatesForDefaultRules(testState)
 # print(f"CURRENT: {testState}")
 # print(f"Length: {len(possible)}")
 # print("")
 # for state in possible:
 #     print(state)
+# print("")
+# print(possible)
 # print("\n")
 
-# # print("POLICY:")
-# # print(findThePolicy(testState))
+# print("=== === === === === ROUND 2 === === === === ===")
+# testState = possible[0]
+# possible = getPossibleNextStatesForDefaultRules(testState)
+# print(f"CURRENT: {testState}")
+# print(f"Length: {len(possible)}")
+# print("")
+# for state in possible:
+#     print(state)
+# print("")
+# print(possible)
+# print("\n")
 
-# print("ASSESSING POSSIBLE MOVES:")
-# assessment = assessPossibleMoves(testState)
-# for item in assessment:
-#     print(f"FOR STATE: {item[0]} --> {item[1]}")
+# print("=== === === === === ROUND 3 === === === === ===")
+# testState = possible[0]
+# possible = getPossibleNextStatesForDefaultRules(testState)
+# print(f"CURRENT: {testState}")
+# print(f"Length: {len(possible)}")
+# print("")
+# for state in possible:
+#     print(state)
+# print("")
+# print(possible)
+# print("\n")
 
+# print("=== === === === === ROUND 4 === === === === ===")
+# testState = possible[0]
+# possible = getPossibleNextStatesForDefaultRules(testState)
+# print(f"CURRENT: {testState}")
+# print(f"Length: {len(possible)}")
+# print("")
+# for state in possible:
+#     print(state)
+# print("")
+# print(possible)
+# print("\n")
 
-# TESTING THE NEXT STATES
-print("Testing next states:")
-print("=== === === === === ROUND 1 === === === === ===")
-testState = GameState(1, 1, 1, 1, 1)
-possible = getPossibleNextStatesForDefaultRules(testState)
-print(f"CURRENT: {testState}")
-print(f"Length: {len(possible)}")
-print("")
-for state in possible:
-    print(state)
-print("")
-print(possible)
-print("\n")
+# print("=== === === === === ROUND 5 === === === === ===")
+# testState = possible[0]
+# possible = getPossibleNextStatesForDefaultRules(testState)
+# print(f"CURRENT: {testState}")
+# print(f"Length: {len(possible)}")
+# print("")
+# for state in possible:
+#     print(state)
+# print("")
+# print(possible)
+# print("\n")
 
-print("=== === === === === ROUND 2 === === === === ===")
-testState = possible[0]
-possible = getPossibleNextStatesForDefaultRules(testState)
-print(f"CURRENT: {testState}")
-print(f"Length: {len(possible)}")
-print("")
-for state in possible:
-    print(state)
-print("")
-print(possible)
-print("\n")
-
-print("=== === === === === ROUND 3 === === === === ===")
-testState = possible[0]
-possible = getPossibleNextStatesForDefaultRules(testState)
-print(f"CURRENT: {testState}")
-print(f"Length: {len(possible)}")
-print("")
-for state in possible:
-    print(state)
-print("")
-print(possible)
-print("\n")
-
-print("=== === === === === ROUND 4 === === === === ===")
-testState = possible[0]
-possible = getPossibleNextStatesForDefaultRules(testState)
-print(f"CURRENT: {testState}")
-print(f"Length: {len(possible)}")
-print("")
-for state in possible:
-    print(state)
-print("")
-print(possible)
-print("\n")
-
-print("=== === === === === ROUND 5 === === === === ===")
-testState = possible[0]
-possible = getPossibleNextStatesForDefaultRules(testState)
-print(f"CURRENT: {testState}")
-print(f"Length: {len(possible)}")
-print("")
-for state in possible:
-    print(state)
-print("")
-print(possible)
-print("\n")
-
-print("=== === === === === ROUND 6 === === === === ===")
-testState = possible[0]
-possible = getPossibleNextStatesForDefaultRules(testState)
-print(f"CURRENT: {testState}")
-print(f"Length: {len(possible)}")
-print("")
-for state in possible:
-    print(state)
-print("")
-print(possible)
-print("\n")
+# print("=== === === === === ROUND 6 === === === === ===")
+# testState = possible[0]
+# possible = getPossibleNextStatesForDefaultRules(testState)
+# print(f"CURRENT: {testState}")
+# print(f"Length: {len(possible)}")
+# print("")
+# for state in possible:
+#     print(state)
+# print("")
+# print(possible)
+# print("\n")
