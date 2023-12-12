@@ -348,6 +348,45 @@ def minimax(currentState, depth):
         return bestScore
 
 
+# Expectimax function to find the best next state
+def expectimax(currentState, depth):
+
+    # Check if the current state is a terminal state
+    terminal = isTerminal(currentState)
+    if terminal == player1Str:
+        return 1
+    elif terminal == player2Str:
+        return -1
+    elif terminal == drawStr:
+        return drawVal
+
+    # Check if we've reached the depth limit
+    if depth >= depthLimit:
+        return depthLimitVal
+    
+    # If it's player 1's turn, we're maximizing
+    if currentState.turn == 1:
+        totalScore = 0
+        for nextState in getPossibleNextStatesForDefaultRules(currentState, False):
+            score = expectimax(nextState, depth + 1)
+            totalScore += score
+        numOfNextStates = len(getPossibleNextStatesForDefaultRules(currentState, False))
+        if numOfNextStates != 0:
+            return totalScore / numOfNextStates
+        else:
+            return 0
+    else: # It's plater 2's turn, so minimizing
+        totalScore = 0
+        for nextState in getPossibleNextStatesForDefaultRules(currentState, False):
+            score = expectimax(nextState, depth + 1)
+            totalScore += score
+        numOfNextStates = len(getPossibleNextStatesForDefaultRules(currentState, False))
+        if numOfNextStates != 0:
+            return totalScore / numOfNextStates
+        else:
+            return 0
+
+
 # Function to find the minimax policy at a given state
 def findThePolicy(currentState):
     bestScore = -arbitraryHighValue
@@ -385,8 +424,9 @@ def assessPossibleMoves(currentState):
     return listOfNextMoveTuples
 
 
+# Set useMinimax to false to use expectimax
 # Function to validate our minimax algorithm using data from the paper
-def validate(validationPath, outputPath):
+def validate(validationPath, outputPath, useMinimax=True):
 
     print("\nBeginning validation...\n")
 
@@ -406,7 +446,10 @@ def validate(validationPath, outputPath):
 
             # Now test the game state
             testState = GameState(int(line[0]), int(line[1]), int(line[3]), int(line[4]), 1)
-            score = minimax(testState, 0)
+            if useMinimax:
+                score = minimax(testState, 0)
+            else:
+                score = expectimax(testState, 0)
 
             # Add the tuple to the list
             tupleList.append((line, score))
@@ -423,7 +466,7 @@ def validate(validationPath, outputPath):
 
 
 # Function to analyze the results of the validation
-def analyze(resultsPath):
+def analyze(resultsPath, useMinimax=True):
 
     # Initialize the counts
     winCount = 0
@@ -435,17 +478,25 @@ def analyze(resultsPath):
     # Open the file of the results
     with open(resultsPath, 'r') as file:
         for line in file:
-            line = line.strip()
-            if line == '1':
-                winCount += 1
-            elif line == '-1':
-                loseCount += 1
-            elif line == str(drawVal):
-                drawCount += 1
-            elif line == str(depthLimitVal):
-                depthLimitCount += 1
+            line = line.strip() 
+            if useMinimax:
+                if line == '1':
+                    winCount += 1
+                elif line == '-1':
+                    loseCount += 1
+                elif line == str(drawVal):
+                    drawCount += 1
+                elif line == str(depthLimitVal):
+                    depthLimitCount += 1
+                else:
+                    errCount += 1
             else:
-                errCount += 1
+                # Expectimax
+                lineAsNum = float(line)
+                if lineAsNum >= 0:
+                    winCount += 1
+                else:
+                    loseCount += 1
 
     # Print the results
     print(f"For File: {resultsPath}")
@@ -461,21 +512,23 @@ def analyze(resultsPath):
 
 # Function to run the analytics   
 def run():
+    useMinimax = True
+
     print("Validate: winning")
-    validate('data/winning.txt', 'results/winning-results.txt')
+    validate('data/winning.txt', 'results/winning-results.txt', useMinimax)
     print("Validate: losing")
-    validate('data/losing.txt', 'results/losing-results.txt')
+    validate('data/losing.txt', 'results/losing-results.txt', useMinimax)
     print("Validate: draws")
-    validate('data/draw.txt', 'results/draw-results.txt')
+    validate('data/draw.txt', 'results/draw-results.txt', useMinimax)
 
     print("\nAnalyze: winning")
-    winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/winning-results.txt')
+    winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/winning-results.txt', useMinimax)
     print(f"Accuracy: {winCount / totalCount}")
     print("\nAnalyze: losing")
-    winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/losing-results.txt')
+    winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/losing-results.txt', useMinimax)
     print(f"Accuracy: {loseCount / totalCount}")
     print("\nAnalyze: draw")
-    winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/draw-results.txt')
+    winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/draw-results.txt', useMinimax)
     print(f"Accuracy: {drawCount / totalCount}")
 
 

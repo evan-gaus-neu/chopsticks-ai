@@ -358,8 +358,47 @@ def minimax(currentState, depth):
         return bestScore
 
 
-# Function to assess the possible next moves
-def assessPossibleMoves(currentState):
+# Expectimax function to get the analytics on the possible next states
+def expectimax(currentState, depth):
+
+    # Check if the current state is a semi terminal state
+    terminal = isSemiTerminal(currentState)
+    if terminal == player1Str:
+        return 1
+    elif terminal == player2Str:
+        return -1
+    elif terminal == drawStr:
+        return drawVal
+
+    # Check if we've reached the depth limit
+    if depth >= depthLimit:
+        return depthLimitVal
+    
+    # If it's player 1's turn, we're maximizing
+    if currentState.turn == 1:
+        totalScore = 0
+        for nextState in getPossibleNextStatesForDefaultRules(currentState, False):
+            score = expectimax(nextState, depth + 1)
+            totalScore += score
+        numOfNextStates = len(getPossibleNextStatesForDefaultRules(currentState, False))
+        if numOfNextStates != 0:
+            return totalScore / numOfNextStates
+        else:
+            return 0
+    else: # It's plater 2's turn, so minimizing
+        totalScore = 0
+        for nextState in getPossibleNextStatesForDefaultRules(currentState, False):
+            score = expectimax(nextState, depth + 1)
+            totalScore += score
+        numOfNextStates = len(getPossibleNextStatesForDefaultRules(currentState, False))
+        if numOfNextStates != 0:
+            return totalScore / numOfNextStates
+        else:
+            return 0
+
+
+# Function to assess the possible next moves using minimax
+def assessPossibleMovesMinimax(currentState):
 
     print("Running assessment...")
 
@@ -378,8 +417,40 @@ def assessPossibleMoves(currentState):
     return listOfNextMoveTuples
 
 
+# Function to assess the possible next moves using expectimax
+def assessPossibleMovesExpectimax(currentState):
+
+    print("Running assessment...")
+
+    listOfNextMoveTuples = []
+
+    for nextState in getPossibleNextStatesForDefaultRules(currentState, False):
+        score = expectimax(nextState, 0)
+        listOfNextMoveTuples.append((nextState, score))
+    
+    # Print the assessment
+    print(f"Number of Possible Moves: {len(listOfNextMoveTuples)}:")
+    for index, item in enumerate(listOfNextMoveTuples):
+        print(f"{index}: {item[0]}   -->   {item[1]}")
+    print("")
+    print(f"Key:   1 = Player 1 wins,   -1 = Player 2 wins,   {drawVal} = Draw (ie loop state),   {depthLimitVal} = Depth Limit Reached")
+    return listOfNextMoveTuples
+
 
 # MAIN CODE TO RUN THE GAME
+
+# Decide between expectimax and minimax
+startInput = input("Would you like to play with minimax (0) or expectimax (1)?\n")
+
+if startInput == '0':
+    useMinimax = True
+    print("\nBeginning game with minimax\n")
+elif startInput == '1':
+    useMinimax = False
+    print("\nBeginning game with expectimax\n")
+else:
+    useMinimax = True
+    print("\nInvalid input, defaulting to minimax\n")
 
 # Set start state
 currentGameState = GameState(1, 1, 1, 1, 1)
@@ -393,7 +464,10 @@ while (not isTerminalPlay(currentGameState)):
     print(f"Current State: {currentGameState}\n")
 
     # Assess the possible moves
-    assessPossibleMoves(currentGameState)
+    if useMinimax:
+        assessPossibleMovesMinimax(currentGameState)
+    else:
+        assessPossibleMovesExpectimax(currentGameState)
     print("\nWhich move do you want to make (type only the index number of the move you wish to make):")
     userInput = input()
 
@@ -413,7 +487,10 @@ while (not isTerminalPlay(currentGameState)):
     # Assess the possible moves:
     print("\nIt's the computer's turn now:")
     print(f"New Current State: {currentGameState}\n")
-    possibleMoves = assessPossibleMoves(currentGameState)
+    if useMinimax:
+        possibleMoves = assessPossibleMovesMinimax(currentGameState)
+    else:
+        possibleMoves = assessPossibleMovesExpectimax(currentGameState)
 
     # Find the lowest scoring move
     minScore = arbitraryHighValue
