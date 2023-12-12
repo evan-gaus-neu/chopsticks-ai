@@ -462,13 +462,11 @@ def analyze(resultsPath):
 # Function to run the analytics   
 def run():
     print("Validate: winning")
-    validate('winning.txt', 'results/winning-results.txt')
+    validate('data/winning.txt', 'results/winning-results.txt')
     print("Validate: losing")
-    validate('losing.txt', 'results/losing-results.txt')
+    validate('data/losing.txt', 'results/losing-results.txt')
     print("Validate: draws")
-    # Change the draw value then run draws
-    depthLimitVal = 0.01
-    validate('draw.txt', 'results/draw-results.txt')
+    validate('data/draw.txt', 'results/draw-results.txt')
 
     print("\nAnalyze: winning")
     winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/winning-results.txt')
