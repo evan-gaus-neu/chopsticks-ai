@@ -104,8 +104,8 @@ def analyze(resultsPath, searchAlgo=model.minimaxStr):
     return winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount
 
 
-# Function to run the analytics   
-def run(searchType):
+# Function to run the validation   
+def runValidation(searchType):
     print("Validate: winning")
     validate('data/winning.txt', searchType + '-results/winning-results.txt', searchType)
     print("Validate: losing")
@@ -113,29 +113,54 @@ def run(searchType):
     print("Validate: draws")
     validate('data/draw.txt', searchType + '-results/draw-results.txt', searchType)
 
-    print("\nAnalyze: winning")
-    winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze(searchType + '-results/winning-results.txt', searchType)
-    print(f"Accuracy: {winCount / totalCount}")
-    print("\nAnalyze: losing")
-    winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze(searchType + '-results/losing-results.txt', searchType)
-    print(f"Accuracy: {loseCount / totalCount}")
-    print("\nAnalyze: draw")
-    winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze(searchType + '-results/draw-results.txt', searchType)
-    print(f"Accuracy: {drawCount / totalCount}")
 
+# Function to run the analytics
+def runAnalytics():
+    listOfSearchTypes = [model.minimaxStr, model.expectimaxStr, model.monteCarloStr]
+    for searchType in listOfSearchTypes:
+        print(f"\n--- --- --- --- --- {searchType} --- --- --- --- ---")
+        print(f"\nAnalyze: winning")
+        winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze(searchType + '-results/winning-results.txt', searchType)
+        print(f"--> Accuracy: {winCount / totalCount}")
+        print(f"\nAnalyze: losing")
+        winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze(searchType + '-results/losing-results.txt', searchType)
+        print(f"--> Accuracy: {loseCount / totalCount}")
+        print(f"\nAnalyze: draw")
+        winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze(searchType + '-results/draw-results.txt', searchType)
+        print(f"--> Accuracy: {drawCount / totalCount}")
+        print("")
+
+
+# MAIN RUN CODE
+
+print("\nWelcome to Chopsticks Analytics!\n")
+print("Validation takes a while (about 7 minutes, depending on the algorithm). You can instead skip validation and just run analytics")
+validationInput = input("Would you like to re-validate (Takes 7 min) (y/n)?\n")
+
+if validationInput == 'y' or validationInput == 'Y':
+    # Run validation
+    print("\nWould you like to validate with:\n(0) Minimax\n(1) Expectimax\n(2) Monte Carlo\n")
+    startInput = input()
+
+    if startInput == '0':
+        searchType = model.minimaxStr
+    elif startInput == '1':
+        searchType = model.expectimaxStr
+    elif startInput == '2':
+        searchType = model.monteCarloStr
+    else:
+        searchType = model.minimaxStr
+        print("\nInvalid input, defaulting to minimax\n")
+
+    print("Now Running Validation...")
+    runValidation(searchType)
+elif validationInput == 'n' or validationInput == 'N':
+    # Skip validation
+    print("\nSkipping validation...\n")
+else:
+    # Skip validation
+    print("\nInvalid input, defaulting to no re-validation\n")
 
 # Run the analytics
-print("\nWould you like to analyze with:\n(0) Minimax\n(1) Expectimax\n(2) Monte Carlo\n")
-startInput = input()
-
-if startInput == '0':
-    searchType = model.minimaxStr
-elif startInput == '1':
-    searchType = model.expectimaxStr
-elif startInput == '2':
-    searchType = model.monteCarloStr
-else:
-    searchType = model.minimaxStr
-    print("\nInvalid input, defaulting to minimax\n")
-
-run(searchType)
+print("Now Running Analytics...")
+runAnalytics()

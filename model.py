@@ -3,6 +3,9 @@
 # Evan Gaus, Alex Reed --> Model.py contains all the necessary code for the chopsticks game
 # NOTE: All of this code was written assuming that for player 1, the hand 1,3 is different from 3,1
 
+# Import
+import random
+
 # VALUES
 arbitraryHighValue = 1000
 player1Val = 1
@@ -10,8 +13,10 @@ player2Val = -1
 drawVal = 0.1
 depthLimitVal = 0.2
 
-analyticsDepthLimit = 7 # QQQ
+analyticsDepthLimit = 10
 playDepthLimit = 9
+
+monteCarloSimulations = 5000
 
 player1Str = 'PLAYER1'
 player2Str = 'PLAYER2'
@@ -422,10 +427,99 @@ def expectimax(currentState, depth, allowSuicides=True, allowRollover=True, allo
         else:
             return 0
 
-# QQQ MONTE CARLO
+# Monte Carlo function to search possible states
 def monteCarlo(currentState, depth, allowSuicides=True, allowRollover=True, allowLooping=True):
-    # TODO QQQ
-    print("Um...")
+    
+    # Get the status at the current state
+    status = getStatusStr(currentState)
+    if status == player1Str:
+        return player1Val
+    elif status == player2Str:
+        return player2Val
+    elif status == drawStr:
+        return drawVal
+    
+
+    # If it's player 1's turn, we're maximizing
+    if currentState.turn == 1:
+        # Define variables
+        bestNextState = None
+        bestWinRate = -float('inf')
+
+        # Loop through next states
+        for nextState in getPossibleNextStates(currentState, allowSuicides, allowRollover, allowLooping):
+            # Define wins
+            wins = 0.0
+
+            for _ in range(monteCarloSimulations):
+                # Simulate random game returns the outcome of the game
+                wins += simulateRandomGame(nextState, depth, allowSuicides, allowRollover, allowLooping)
+
+            # Get the win rate for this state
+            winRate = wins / monteCarloSimulations
+
+            if winRate > bestWinRate:
+                bestWinRate = winRate
+                bestNextState = nextState
+        return bestWinRate
+    else: # It's plater 2's turn, so minimizing
+        # Define variables
+        worstNextState = None
+        worstWinRate = float('inf')
+
+        # Loop through next states
+        for nextState in getPossibleNextStates(currentState, allowSuicides, allowRollover, allowLooping):
+            # Define wins
+            wins = 0.0
+
+            for _ in range(monteCarloSimulations):
+                # Simulate random game returns the outcome of the game
+                wins += simulateRandomGame(nextState, depth, allowSuicides, allowRollover, allowLooping)
+
+            # Get the win rate for this state
+            winRate = wins / monteCarloSimulations
+
+            if winRate < worstWinRate:
+                worstWinRate = winRate
+                worstNextState = nextState
+        return worstWinRate
+    
+
+# Monte Carlo Helper --> Simulates a random game for {DEPTH LIMIT} steps from the given state, return the outcome
+def simulateRandomGame(currentState, depth, allowSuicides, allowRollover, allowLooping):
+
+    # Get the status at the current state
+    status = getStatusStr(currentState)
+    if status == player1Str:
+        return player1Val
+    elif status == player2Str:
+        return player2Val
+    elif status == drawStr:
+        return drawVal
+
+    # Check if we've reached the depth limit
+    if allowLooping:
+        # Use play depth limit
+        if depth >= playDepthLimit:
+            return depthLimitVal
+    else:
+        # Use analytics depth limit
+        if depth >= analyticsDepthLimit:
+            return depthLimitVal
+
+    # Get the next states
+    nextStates = getPossibleNextStates(currentState, allowSuicides, allowRollover, allowLooping)
+
+    # Make sure there are next states
+    if len(nextStates) == 0:
+        return 0
+
+    # Choose a random next state
+    randomNextState = random.choice(nextStates)
+
+    # Call the function recursively
+    return simulateRandomGame(randomNextState, depth + 1, allowSuicides, allowRollover, allowLooping)
+
 
 # Function to assess the possible next moves using specified search algorithm (default is minimax)
 def assessPossibleMoves(currentState, searchAlgo=minimaxStr, allowSuicides=True, allowRollover=True, allowLooping=True):
