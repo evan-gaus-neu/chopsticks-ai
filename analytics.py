@@ -1,24 +1,26 @@
 # analytics.py
 
-# Evan Gaus, Alex Reed
+# Evan Gaus, Alex Reed --> Run this file to run the analytics of the minimax algorithm
+# NOTE: All of this code was written assuming that for player 1, the hand 1,3 is different from 3,1
+# NOTE: The way we analyze the draws, they're never going to be successfully found via our minimax algorithm
+# (We're jumping in the game halfway through at the specificed "draw" state, so it's not going to have a whole history to check for a loop)
 
 # Helpful values
 arbitraryHighValue = 1000
-depthLimit = 8
+depthLimit = 10
 player1Str = 'PLAYER1'
 player2Str = 'PLAYER2'
 drawStr = 'DRAW'
 contStr = 'CONTINUE'
 drawVal = 0.1
 depthLimitVal = 0.2
-# rolloverByDefault = True
 
 # Define a class to represent the game state
-# Player One Left = P1L
-# Player One Right = P1R
-# Player Two Left = P2L
-# Player Two Right = P2R
-# Who's turn it is = turn (1 or 2)
+# Player One Left 
+# Player One Right 
+# Player Two Left 
+# Player Two Right 
+# Who's turn it is (1 or 2)
 class GameState:
     def __init__(self, player1Left, player1Right, player2Left, player2Right, turn, previousStates=None) -> None:
         # Initialize the game state
@@ -38,7 +40,6 @@ class GameState:
         # return f"GS: [{self.player1Left}, {self.player1Right}, {self.player2Left}, {self.player2Right}, {self.turn}]"
         # return f"GameState(player1Left={self.player1Left}, player1Right={self.player1Right}, player2Left={self.player2Left}, player2Right={self.player2Right}, turn={self.turn})"
     
-    # QQQ This was never updated after adding previous states
     def __eq__(self, __value: object) -> bool:
         # Return True if the game states are equal
         if not isinstance(__value, GameState):
@@ -51,25 +52,8 @@ class GameState:
                 self.turn == __value.turn)
     
 
-# QQQ Might have to come back to this, because we might need to make 0 for a tie instead of it not being over yet
-# Define a function to check if a game state is a terminal state
-def isTerminalPlay(gameState):
-    # Return true if the game is in a truly terminal state (not loops)
-    if gameState.player1Left == 0 and gameState.player1Right == 0:
-        return True
-    elif gameState.player2Left == 0 and gameState.player2Right == 0:
-        return True
-    else:
-        return False
-    # Check if the state is a terminal state
-    # if gameState.player1Left == 0 and gameState.player1Right == 0:
-    #     return -1
-    # elif gameState.player2Left == 0 and gameState.player2Right == 0:
-    #     return 1
-    # else:
-    #     return 0
-    
-def isTerminal2(gameState):
+# Function to check if the game is over    
+def isTerminal(gameState):
     # Check if the game is over
     if gameState.player1Left == 0 and gameState.player1Right == 0:
         return player2Str
@@ -82,22 +66,18 @@ def isTerminal2(gameState):
         return contStr
     
 
-# NOTE: All of this code was written assuming that for player 1, the hand 1,3 is different from 3,1
+# This assumes suicude rules, and rollover by default
 # Function to get the possible next states for the default rules (get possible next moves)
 def getPossibleNextStatesForDefaultRules(currentState, rollover=True):
 
     # Define a variable to hold the next states
     nextStates = []
 
-    # If it's a terminal state # 2
-    terminal = isTerminal2(currentState)
+    # If it's a terminal state
+    terminal = isTerminal(currentState)
     if terminal == player1Str or terminal == player2Str or terminal == drawStr:
         return nextStates
     # If it's contStr, we can continue
-
-    # # If it's a terminal state, return an empty list
-    # if isTerminal(currentState) != 0:
-    #     return nextStates
 
     # Gotta switch the turn
     if currentState.turn == 1:
@@ -137,10 +117,6 @@ def getPossibleNextStatesForDefaultRules(currentState, rollover=True):
                 else:
                     # This is the cutoff way:
                     newVal = 0
-                # # QQQ This is the rollover way:
-                # newVal = newVal - 5
-                # # This is the cutoff way:
-                # # newVal = 0
 
             # Make the new state
             if currentState.turn == 1:
@@ -162,7 +138,6 @@ def getPossibleNextStatesForDefaultRules(currentState, rollover=True):
             
             # Add the new state to the list of next states
             nextStates.append(newState)
-
 
 
     # DIVISIONS AND TRANSFERS
@@ -342,21 +317,17 @@ def getPossibleNextStatesForDefaultRules(currentState, rollover=True):
     return nextStates
 
 
-
+# Minimax function to find the best next state
 def minimax(currentState, depth):
 
     # Check if the current state is a terminal state
-    terminal = isTerminal2(currentState)
+    terminal = isTerminal(currentState)
     if terminal == player1Str:
         return 1
     elif terminal == player2Str:
         return -1
     elif terminal == drawStr:
         return drawVal
-
-    # # Check if the current state is a terminal state
-    # if isTerminal(currentState) != 0:
-    #     return isTerminal(currentState)
 
     # Check if we've reached the depth limit
     if depth >= depthLimit:
@@ -377,6 +348,7 @@ def minimax(currentState, depth):
         return bestScore
 
 
+# Function to find the minimax policy at a given state
 def findThePolicy(currentState):
     bestScore = -arbitraryHighValue
     bestNextState = None
@@ -388,6 +360,8 @@ def findThePolicy(currentState):
             bestNextState = nextState
     return bestNextState
 
+
+# Function to assess the possible moves at a given state
 def assessPossibleMoves(currentState):
 
     print("Running assessment...")
@@ -411,8 +385,9 @@ def assessPossibleMoves(currentState):
     return listOfNextMoveTuples
 
 
+# Function to validate our minimax algorithm using data from the paper
 def validate(validationPath, outputPath):
-    # Function to validate using the paper
+
     print("\nBeginning validation...\n")
 
     tupleList = []
@@ -446,6 +421,8 @@ def validate(validationPath, outputPath):
     print(f"Key:   1 = Player 1 wins,   -1 = Player 2 wins,   {drawVal} = Draw (ie loop state),   {depthLimitVal} = Depth Limit Reached")
     print("\n")
 
+
+# Function to analyze the results of the validation
 def analyze(resultsPath):
 
     # Initialize the counts
@@ -481,7 +458,8 @@ def analyze(resultsPath):
     print(f"Total Count: {totalCount}")
     return winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount
 
-            
+
+# Function to run the analytics   
 def run():
     print("Validate: winning")
     validate('winning.txt', 'results/winning-results.txt')
@@ -503,262 +481,5 @@ def run():
     print(f"Accuracy: {drawCount / totalCount}")
 
 
-# # Current State: GS: P1(0, 4) P2(3, 3) T:1
-# testState = GameState(0, 4, 3, 3, 1)
-# # assessPossibleMoves(testState)
-# # print(getPossibleNextStatesForDefaultRules(testState))
-
-# print(f"Current State: {testState}")
-
-# for item in getPossibleNextStatesForDefaultRules(testState):
-#     print(item)
-
-
-
-
-# QQQ The draws are never going to work (because of the nature of how we find a draw, we're jumping in the game halfway through so it's not going to have a whole history to check for a loop)
-
+# Run the analytics
 run()
-
-# Testing:
-# testState = GameState(0, 3, 0, 4, 1)
-# assessPossibleMoves(testState)
-
-
-# print("Validate: winning")
-# validate('winning.txt', 'results/winning-results.txt')
-# print("Validate: losing")
-# validate('losing.txt', 'results/losing-results.txt')
-# print("Validate: draws")
-# validate('draw.txt', 'results/draw-results.txt')
-
-# print("\nAnalyze: winning")
-# winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/winning-results.txt')
-# print(f"Accuracy: {winCount / totalCount}")
-# print("\nAnalyze: losing")
-# winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/losing-results.txt')
-# print(f"Accuracy: {loseCount / totalCount}")
-# print("\nAnalyze: draw")
-# winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/draw-results.txt')
-# print(f"Accuracy: {drawCount / totalCount}")
-
-
-
-
-
-
-
-
-# testState1 = GameState(0, 1, 0, 4, 1)
-# testState2 = GameState(0, 1, 1, 4, 1)
-# testState3 = GameState(0, 2, 0, 1, 1)
-# testState4 = GameState(0, 2, 0, 3, 1)
-# testState5 = GameState(0, 2, 0, 4, 1)
-# assessPossibleMoves(testState1)
-# assessPossibleMoves(testState2)
-# assessPossibleMoves(testState3)
-# assessPossibleMoves(testState4)
-# assessPossibleMoves(testState5)
-
-# print("=== === === === === START === === === === ===")
-# # DEFINE THE CURRENT STATE
-# testState = GameState(1, 1, 1, 1, 1)
-
-# # TESTING
-# possible = getPossibleNextStatesForDefaultRules(testState)
-# print(f"CURRENT: {testState}")
-# print(f"Length: {len(possible)}")
-# print("")
-# for state in possible:
-#     print(state)
-# print("")
-
-# # print("POLICY:")
-# # print(findThePolicy(testState))
-
-# print("ASSESSING POSSIBLE MOVES:")
-# assessment = assessPossibleMoves(testState)
-# for item in assessment:
-#     print(f"FOR STATE: {item[0]}   -->   {item[1]}")
-
-# print("\n")
-
-# print("=== === === === === ROUND 2 === === === === ===")
-# # DEFINE THE CURRENT STATE
-# testState = possible[0]
-# # testState = GameState(0, 2, 0, 1, 2)
-
-# # TESTING
-# possible = getPossibleNextStatesForDefaultRules(testState)
-# print(f"CURRENT: {testState}")
-# print(f"Length: {len(possible)}")
-# print("")
-# for state in possible:
-#     print(state)
-# print("")
-
-# # print("POLICY:")
-# # print(findThePolicy(testState))
-
-# print("ASSESSING POSSIBLE MOVES:")
-# assessment = assessPossibleMoves(testState)
-# for item in assessment:
-#     print(f"FOR STATE: {item[0]} --> {item[1]}")
-
-# print("\n")
-
-
-# print("=== === === === === ROUND 3 === === === === ===")
-# # DEFINE THE CURRENT STATE
-# testState = possible[1]
-# # testState = GameState(0, 2, 0, 1, 2)
-
-# # TESTING
-# possible = getPossibleNextStatesForDefaultRules(testState)
-# print(f"CURRENT: {testState}")
-# print(f"Length: {len(possible)}")
-# print("")
-# for state in possible:
-#     print(state)
-# print("")
-
-# # print("POLICY:")
-# # print(findThePolicy(testState))
-
-# print("ASSESSING POSSIBLE MOVES:")
-# assessment = assessPossibleMoves(testState)
-# for item in assessment:
-#     print(f"FOR STATE: {item[0]} --> {item[1]}")
-
-# print("\n")
-
-# print("=== === === === === ROUND 4 === === === === ===")
-# # DEFINE THE CURRENT STATE
-# testState = possible[1]
-# # testState = GameState(0, 2, 0, 1, 2)
-
-# # TESTING
-# possible = getPossibleNextStatesForDefaultRules(testState)
-# print(f"CURRENT: {testState}")
-# print(f"Length: {len(possible)}")
-# print("")
-# for state in possible:
-#     print(state)
-# print("")
-
-# # print("POLICY:")
-# # print(findThePolicy(testState))
-
-# print("ASSESSING POSSIBLE MOVES:")
-# assessment = assessPossibleMoves(testState)
-# for item in assessment:
-#     print(f"FOR STATE: {item[0]} --> {item[1]}")
-
-# print("\n")
-
-# print("=== === === === === ROUND 5 === === === === ===")
-# # DEFINE THE CURRENT STATE
-# testState = possible[1]
-# # testState = GameState(0, 2, 0, 1, 2)
-
-# # TESTING
-# possible = getPossibleNextStatesForDefaultRules(testState)
-# print(f"CURRENT: {testState}")
-# print(f"Length: {len(possible)}")
-# print("")
-# for state in possible:
-#     print(state)
-# print("")
-
-# # print("POLICY:")
-# # print(findThePolicy(testState))
-
-# print("ASSESSING POSSIBLE MOVES:")
-# assessment = assessPossibleMoves(testState)
-# for item in assessment:
-#     print(f"FOR STATE: {item[0]} --> {item[1]}")
-
-# print("\n")
-
-
-
-
-
-
-
-
-
-
-# # TESTING THE NEXT STATES
-# print("Testing next states:")
-# print("=== === === === === ROUND 1 === === === === ===")
-# testState = GameState(1, 1, 1, 1, 1)
-# possible = getPossibleNextStatesForDefaultRules(testState)
-# print(f"CURRENT: {testState}")
-# print(f"Length: {len(possible)}")
-# print("")
-# for state in possible:
-#     print(state)
-# print("")
-# print(possible)
-# print("\n")
-
-# print("=== === === === === ROUND 2 === === === === ===")
-# testState = possible[0]
-# possible = getPossibleNextStatesForDefaultRules(testState)
-# print(f"CURRENT: {testState}")
-# print(f"Length: {len(possible)}")
-# print("")
-# for state in possible:
-#     print(state)
-# print("")
-# print(possible)
-# print("\n")
-
-# print("=== === === === === ROUND 3 === === === === ===")
-# testState = possible[0]
-# possible = getPossibleNextStatesForDefaultRules(testState)
-# print(f"CURRENT: {testState}")
-# print(f"Length: {len(possible)}")
-# print("")
-# for state in possible:
-#     print(state)
-# print("")
-# print(possible)
-# print("\n")
-
-# print("=== === === === === ROUND 4 === === === === ===")
-# testState = possible[0]
-# possible = getPossibleNextStatesForDefaultRules(testState)
-# print(f"CURRENT: {testState}")
-# print(f"Length: {len(possible)}")
-# print("")
-# for state in possible:
-#     print(state)
-# print("")
-# print(possible)
-# print("\n")
-
-# print("=== === === === === ROUND 5 === === === === ===")
-# testState = possible[0]
-# possible = getPossibleNextStatesForDefaultRules(testState)
-# print(f"CURRENT: {testState}")
-# print(f"Length: {len(possible)}")
-# print("")
-# for state in possible:
-#     print(state)
-# print("")
-# print(possible)
-# print("\n")
-
-# print("=== === === === === ROUND 6 === === === === ===")
-# testState = possible[0]
-# possible = getPossibleNextStatesForDefaultRules(testState)
-# print(f"CURRENT: {testState}")
-# print(f"Length: {len(possible)}")
-# print("")
-# for state in possible:
-#     print(state)
-# print("")
-# print(possible)
-# print("\n")
