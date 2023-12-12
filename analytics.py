@@ -1,10 +1,10 @@
-# main.py
+# analytics.py
 
 # Evan Gaus, Alex Reed
 
 # Helpful values
 arbitraryHighValue = 1000
-depthLimit = 10
+depthLimit = 8
 player1Str = 'PLAYER1'
 player2Str = 'PLAYER2'
 drawStr = 'DRAW'
@@ -503,25 +503,22 @@ def run():
     print(f"Accuracy: {drawCount / totalCount}")
 
 
-# Current State: GS: P1(0, 4) P2(3, 3) T:1
-testState = GameState(0, 4, 3, 3, 1)
-# assessPossibleMoves(testState)
-# print(getPossibleNextStatesForDefaultRules(testState))
+# # Current State: GS: P1(0, 4) P2(3, 3) T:1
+# testState = GameState(0, 4, 3, 3, 1)
+# # assessPossibleMoves(testState)
+# # print(getPossibleNextStatesForDefaultRules(testState))
 
-print(f"Current State: {testState}")
+# print(f"Current State: {testState}")
 
-for item in getPossibleNextStatesForDefaultRules(testState):
-    print(item)
-
-
-
+# for item in getPossibleNextStatesForDefaultRules(testState):
+#     print(item)
 
 
 
 
 # QQQ The draws are never going to work (because of the nature of how we find a draw, we're jumping in the game halfway through so it's not going to have a whole history to check for a loop)
 
-# run()
+run()
 
 # Testing:
 # testState = GameState(0, 3, 0, 4, 1)
