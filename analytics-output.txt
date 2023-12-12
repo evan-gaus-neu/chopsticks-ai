@@ -1,0 +1,101 @@
+analytics-output.txt
+
+Evan Gaus, Alex Reed --> This is the output of running the analytics on the validated data:
+
+--- --- --- --- --- MINIMAX --- --- --- --- ---
+
+Analyze: winning
+For File: MINIMAX-results/winning-results.txt
+Win Count: 38
+Lose Count: 0
+Draw Count: 0
+Depth Limit Count: 34
+Error Count: 0
+Total Count: 72
+--> Accuracy: 0.5277777777777778
+
+Analyze: losing
+For File: MINIMAX-results/losing-results.txt
+Win Count: 0
+Lose Count: 8
+Draw Count: 0
+Depth Limit Count: 13
+Error Count: 0
+Total Count: 21
+--> Accuracy: 0.38095238095238093
+
+Analyze: draw
+For File: MINIMAX-results/draw-results.txt
+Win Count: 0
+Lose Count: 0
+Draw Count: 0
+Depth Limit Count: 100
+Error Count: 0
+Total Count: 100
+--> Accuracy: 0.0
+
+
+--- --- --- --- --- EXPECTIMAX --- --- --- --- ---
+
+Analyze: winning
+For File: EXPECTIMAX-results/winning-results.txt
+Win Count: 61
+Lose Count: 11
+Draw Count: 0
+Depth Limit Count: 0
+Error Count: 0
+Total Count: 72
+--> Accuracy: 0.8472222222222222
+
+Analyze: losing
+For File: EXPECTIMAX-results/losing-results.txt
+Win Count: 3
+Lose Count: 18
+Draw Count: 0
+Depth Limit Count: 0
+Error Count: 0
+Total Count: 21
+--> Accuracy: 0.8571428571428571
+
+Analyze: draw
+For File: EXPECTIMAX-results/draw-results.txt
+Win Count: 65
+Lose Count: 35
+Draw Count: 0
+Depth Limit Count: 0
+Error Count: 0
+Total Count: 100
+--> Accuracy: 0.0
+
+
+--- --- --- --- --- MONTECARLO --- --- --- --- ---
+
+Analyze: winning
+For File: MONTECARLO-results/winning-results.txt
+Win Count: 72
+Lose Count: 0
+Draw Count: 0
+Depth Limit Count: 0
+Error Count: 0
+Total Count: 72
+--> Accuracy: 1.0
+
+Analyze: losing
+For File: MONTECARLO-results/losing-results.txt
+Win Count: 10
+Lose Count: 11
+Draw Count: 0
+Depth Limit Count: 0
+Error Count: 0
+Total Count: 21
+--> Accuracy: 0.5238095238095238
+
+Analyze: draw
+For File: MONTECARLO-results/draw-results.txt
+Win Count: 96
+Lose Count: 4
+Draw Count: 0
+Depth Limit Count: 0
+Error Count: 0
+Total Count: 100
+--> Accuracy: 0.0
