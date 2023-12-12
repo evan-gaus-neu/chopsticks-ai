@@ -6,6 +6,10 @@
 # (We're jumping in the game halfway through at the specificed "draw" state, so it's not going to have a whole history to check for a loop)
 
 # Helpful values
+import random
+from play import isSemiTerminal, isTerminalPlay
+
+
 arbitraryHighValue = 1000
 depthLimit = 10
 player1Str = 'PLAYER1'
@@ -375,7 +379,7 @@ def expectimax(currentState, depth):
             return totalScore / numOfNextStates
         else:
             return 0
-    else: # It's plater 2's turn, so minimizing
+    else: # It's player 2's turn, so minimizing
         totalScore = 0
         for nextState in getPossibleNextStatesForDefaultRules(currentState, False):
             score = expectimax(nextState, depth + 1)
@@ -386,6 +390,55 @@ def expectimax(currentState, depth):
         else:
             return 0
 
+def monte_carlo_search_move(currentState, num_simulations):
+    moves = getPossibleNextStatesForDefaultRules(currentState, False)
+
+    scores = []
+
+    for move in moves:
+        total_score = 0
+        for _ in range(num_simulations):
+            score = simulate(move)
+            total_score += score
+
+        average_score = total_score / num_simulations
+        scores.append((move, average_score))
+
+    best_move, _ = max(scores, key=lambda x: x[1])
+    return best_move
+
+def simulate(state):
+    terminal = isTerminal(state)
+    if terminal == player1Str:
+        return 1
+    elif terminal == player2Str:
+        return -1
+    elif terminal == drawStr:
+        return drawVal
+
+    return default_policy(state)
+
+def default_policy(state):
+    depth = 0
+    while not isTerminal(state):
+        state = random.choice(getPossibleNextStatesForDefaultRules(state, False))
+        depth += 1
+        if depth >= depthLimit:
+            return depthLimitVal
+
+    return evaluate(state)
+
+def evaluate(state):
+    # Load the list of winning positions from the file
+    with open('winning.txt', 'r') as file:
+        winning_positions = [line.strip() for line in file]
+    for position in winning_positions:
+        testState = GameState(int(position[0]), int(position[1]), int(position[3]), int(position[4]), 1)
+        if state == testState:
+            return 1
+
+    # Replace this with your own evaluation logic for non-winning positions
+    return 0
 
 # Function to find the minimax policy at a given state
 def findThePolicy(currentState):
@@ -513,6 +566,25 @@ def analyze(resultsPath, useMinimax=True):
 # Function to run the analytics   
 def run():
     useMinimax = True
+
+    print("Validate: winning")
+    validate('data/winning.txt', 'results/winning-results.txt', useMinimax)
+    print("Validate: losing")
+    validate('data/losing.txt', 'results/losing-results.txt', useMinimax)
+    print("Validate: draws")
+    validate('data/draw.txt', 'results/draw-results.txt', useMinimax)
+
+    print("\nAnalyze: winning")
+    winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/winning-results.txt', useMinimax)
+    print(f"Accuracy: {winCount / totalCount}")
+    print("\nAnalyze: losing")
+    winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/losing-results.txt', useMinimax)
+    print(f"Accuracy: {loseCount / totalCount}")
+    print("\nAnalyze: draw")
+    winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/draw-results.txt', useMinimax)
+    print(f"Accuracy: {drawCount / totalCount}")
+    
+    useMinimax = False
 
     print("Validate: winning")
     validate('data/winning.txt', 'results/winning-results.txt', useMinimax)

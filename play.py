@@ -4,6 +4,9 @@
 # NOTE: All of this code was written assuming that for player 1, the hand 1,3 is different from 3,1
 
 # Helpful values
+import random
+
+
 arbitraryHighValue = 1000
 depthLimit = 9
 player1Str = 'PLAYER1'
@@ -350,7 +353,7 @@ def minimax(currentState, depth):
             score = minimax(nextState, depth + 1)
             bestScore = max(score, bestScore)
         return bestScore
-    else: # It's plater 2's turn, so minimizing
+    else: # It's player 2's turn, so minimizing
         bestScore = arbitraryHighValue
         for nextState in getPossibleNextStatesForDefaultRules(currentState, False):
             score = minimax(nextState, depth + 1)
@@ -396,10 +399,8 @@ def expectimax(currentState, depth):
         else:
             return 0
 
-
 # Function to assess the possible next moves using minimax
 def assessPossibleMovesMinimax(currentState):
-
     print("Running assessment...")
 
     listOfNextMoveTuples = []
@@ -518,4 +519,4 @@ elif terminal == player2Str:
     print("Sorry, you lost!\n")
 
 # Print the final state
-print(f"Final State of the game: {currentGameState}\n\n")
+print(f"Final State of the game: {currentGameState}\n\n") 
