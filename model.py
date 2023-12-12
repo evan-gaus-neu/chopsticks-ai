@@ -1,29 +1,35 @@
-# analytics.py
+# model.py
 
-# Evan Gaus, Alex Reed --> Run this file to run the analytics of the minimax algorithm
+# Evan Gaus, Alex Reed --> Model.py contains all the necessary code for the chopsticks game
 # NOTE: All of this code was written assuming that for player 1, the hand 1,3 is different from 3,1
-# NOTE: The way we analyze the draws, they're never going to be successfully found via our minimax algorithm
-# (We're jumping in the game halfway through at the specificed "draw" state, so it's not going to have a whole history to check for a loop)
 
-# Helpful values
-import random
-from play import isSemiTerminal, isTerminalPlay
-
-
+# VALUES
 arbitraryHighValue = 1000
-depthLimit = 10
+player1Val = 1
+player2Val = -1
+drawVal = 0.1
+depthLimitVal = 0.2
+
+analyticsDepthLimit = 7 # QQQ
+playDepthLimit = 9
+
 player1Str = 'PLAYER1'
 player2Str = 'PLAYER2'
 drawStr = 'DRAW'
 contStr = 'CONTINUE'
-drawVal = 0.1
-depthLimitVal = 0.2
+
+minimaxStr = 'MINIMAX'
+expectimaxStr = 'EXPECTIMAX'
+monteCarloStr = 'MONTECARLO'
+
+
+# CLASSES
 
 # Define a class to represent the game state
-# Player One Left 
-# Player One Right 
-# Player Two Left 
-# Player Two Right 
+# Player One Left
+# Player One Right
+# Player Two Left
+# Player Two Right
 # Who's turn it is (1 or 2)
 class GameState:
     def __init__(self, player1Left, player1Right, player2Left, player2Right, turn, previousStates=None) -> None:
@@ -54,10 +60,22 @@ class GameState:
                 self.player2Left == __value.player2Left and 
                 self.player2Right == __value.player2Right and 
                 self.turn == __value.turn)
-    
 
-# Function to check if the game is over    
-def isTerminal(gameState):
+
+# FUNCTIONS
+
+# Checks if the game is truly in a terminal state, to end the playback
+def stateIsTerminal(gameState):
+    # Return true if the game is in a truly terminal state (not loops)
+    if gameState.player1Left == 0 and gameState.player1Right == 0:
+        return True
+    elif gameState.player2Left == 0 and gameState.player2Right == 0:
+        return True
+    else:
+        return False
+
+# Returns a string to represent the status of the game (ie including loops)
+def getStatusStr(gameState):
     # Check if the game is over
     if gameState.player1Left == 0 and gameState.player1Right == 0:
         return player2Str
@@ -68,19 +86,22 @@ def isTerminal(gameState):
         return drawStr
     else:
         return contStr
-    
 
-# This assumes suicude rules, and rollover by default
-# Function to get the possible next states for the default rules (get possible next moves)
-def getPossibleNextStatesForDefaultRules(currentState, rollover=True):
+# Gets the possible next states for the current state of the game
+# Allows you to specifiy whether or not to allow suicides (default is True)
+# Allows you to specify whether or not to allow rollover (default is True)
+# Allows you to specify whether or not to allow looping (default is True) (Looping necessary (TRUE) for playing, not for analytics)
+def getPossibleNextStates(currentState, allowSuicides=True, allowRollover=True, allowLooping=True):
 
     # Define a variable to hold the next states
     nextStates = []
 
-    # If it's a terminal state
-    terminal = isTerminal(currentState)
-    if terminal == player1Str or terminal == player2Str or terminal == drawStr:
-        return nextStates
+    # Check the status of the game
+    status = getStatusStr(currentState)
+    if status == player1Str or status == player2Str:
+        return nextStates # The game is truly over
+    if status == drawStr and not allowLooping:
+        return nextStates # The game is over if we don't allow looping
     # If it's contStr, we can continue
 
     # Gotta switch the turn
@@ -115,7 +136,7 @@ def getPossibleNextStatesForDefaultRules(currentState, rollover=True):
             # Do the attack
             newVal = attVal + defVal
             if newVal >= 5:
-                if rollover:
+                if allowRollover:
                     # This is the rollover way:
                     newVal = newVal - 5
                 else:
@@ -144,8 +165,9 @@ def getPossibleNextStatesForDefaultRules(currentState, rollover=True):
             nextStates.append(newState)
 
 
+
     # DIVISIONS AND TRANSFERS
-     # Set the left and right values
+    # Set the left and right values
     if currentState.turn == 1:
         left = currentState.player1Left
         right = currentState.player1Right
@@ -302,307 +324,135 @@ def getPossibleNextStatesForDefaultRules(currentState, rollover=True):
             nextStates.append(newState1)
             nextStates.append(newState2)
 
-
-    # ---> SUICIDES --- --- ---
-    # If right and left are nonzero, they can be combined to either hand
-    if left != 0 and right != 0 and total < 5:
-        if currentState.turn == 1:
-            newState1 = GameState(0, total, currentState.player2Left, currentState.player2Right, nextTurn, currentState.previousStates + [currentState])
-            newState2 = GameState(total, 0, currentState.player2Left, currentState.player2Right, nextTurn, currentState.previousStates + [currentState])
-        else:
-            newState1 = GameState(currentState.player1Left, currentState.player1Right, 0, total, nextTurn, currentState.previousStates + [currentState])
-            newState2 = GameState(currentState.player1Left, currentState.player1Right, total, 0, nextTurn, currentState.previousStates + [currentState])
-        # Add the new states
-        nextStates.append(newState1)
-        nextStates.append(newState2)
-        
+    # Check if suicides are allowed
+    if allowSuicides:
+        # ---> SUICIDES --- --- ---
+        # If right and left are nonzero, they can be combined to either hand
+        if left != 0 and right != 0 and total < 5:
+            if currentState.turn == 1:
+                newState1 = GameState(0, total, currentState.player2Left, currentState.player2Right, nextTurn, currentState.previousStates + [currentState])
+                newState2 = GameState(total, 0, currentState.player2Left, currentState.player2Right, nextTurn, currentState.previousStates + [currentState])
+            else:
+                newState1 = GameState(currentState.player1Left, currentState.player1Right, 0, total, nextTurn, currentState.previousStates + [currentState])
+                newState2 = GameState(currentState.player1Left, currentState.player1Right, total, 0, nextTurn, currentState.previousStates + [currentState])
+            # Add the new states
+            nextStates.append(newState1)
+            nextStates.append(newState2)
 
     # After all that, return the list of next states
     return nextStates
 
+# Minimax function to search possible states
+def minimax(currentState, depth, allowSuicides=True, allowRollover=True, allowLooping=True):
 
-# Minimax function to find the best next state
-def minimax(currentState, depth):
-
-    # Check if the current state is a terminal state
-    terminal = isTerminal(currentState)
-    if terminal == player1Str:
-        return 1
-    elif terminal == player2Str:
-        return -1
-    elif terminal == drawStr:
+    # Get the status at the current state
+    status = getStatusStr(currentState)
+    if status == player1Str:
+        return player1Val
+    elif status == player2Str:
+        return player2Val
+    elif status == drawStr:
         return drawVal
 
     # Check if we've reached the depth limit
-    if depth >= depthLimit:
-        return depthLimitVal
+    if allowLooping:
+        # Use play depth limit
+        if depth >= playDepthLimit:
+            return depthLimitVal
+    else:
+        # Use analytics depth limit
+        if depth >= analyticsDepthLimit:
+            return depthLimitVal
     
     # If it's player 1's turn, we're maximizing
     if currentState.turn == 1:
         bestScore = -arbitraryHighValue
-        for nextState in getPossibleNextStatesForDefaultRules(currentState):
-            score = minimax(nextState, depth + 1)
+        for nextState in getPossibleNextStates(currentState, allowSuicides, allowRollover, allowLooping):
+            score = minimax(nextState, depth + 1, allowSuicides, allowRollover, allowLooping)
             bestScore = max(score, bestScore)
         return bestScore
-    else: # It's plater 2's turn, so minimizing
+    else: # It's player 2's turn, so minimizing
         bestScore = arbitraryHighValue
-        for nextState in getPossibleNextStatesForDefaultRules(currentState):
-            score = minimax(nextState, depth + 1)
+        for nextState in getPossibleNextStates(currentState, allowSuicides, allowRollover, allowLooping):
+            score = minimax(nextState, depth + 1, allowSuicides, allowRollover, allowLooping)
             bestScore = min(score, bestScore)
         return bestScore
 
+# Expectimax function to search possible states
+def expectimax(currentState, depth, allowSuicides=True, allowRollover=True, allowLooping=True):
 
-# Expectimax function to find the best next state
-def expectimax(currentState, depth):
-
-    # Check if the current state is a terminal state
-    terminal = isTerminal(currentState)
-    if terminal == player1Str:
-        return 1
-    elif terminal == player2Str:
-        return -1
-    elif terminal == drawStr:
+    # Get the status at the current state
+    status = getStatusStr(currentState)
+    if status == player1Str:
+        return player1Val
+    elif status == player2Str:
+        return player2Val
+    elif status == drawStr:
         return drawVal
 
     # Check if we've reached the depth limit
-    if depth >= depthLimit:
-        return depthLimitVal
+    if allowLooping:
+        # Use play depth limit
+        if depth >= playDepthLimit:
+            return depthLimitVal
+    else:
+        # Use analytics depth limit
+        if depth >= analyticsDepthLimit:
+            return depthLimitVal
     
     # If it's player 1's turn, we're maximizing
     if currentState.turn == 1:
         totalScore = 0
-        for nextState in getPossibleNextStatesForDefaultRules(currentState, False):
-            score = expectimax(nextState, depth + 1)
+        for nextState in getPossibleNextStates(currentState, allowSuicides, allowRollover, allowLooping):
+            score = expectimax(nextState, depth + 1, allowSuicides, allowRollover, allowLooping)
             totalScore += score
-        numOfNextStates = len(getPossibleNextStatesForDefaultRules(currentState, False))
+        numOfNextStates = len(getPossibleNextStates(currentState, allowSuicides, allowRollover, allowLooping))
         if numOfNextStates != 0:
             return totalScore / numOfNextStates
         else:
             return 0
-    else: # It's player 2's turn, so minimizing
+    else: # It's plater 2's turn, so minimizing
         totalScore = 0
-        for nextState in getPossibleNextStatesForDefaultRules(currentState, False):
-            score = expectimax(nextState, depth + 1)
+        for nextState in getPossibleNextStates(currentState, allowSuicides, allowRollover, allowLooping):
+            score = expectimax(nextState, depth + 1, allowSuicides, allowRollover, allowLooping)
             totalScore += score
-        numOfNextStates = len(getPossibleNextStatesForDefaultRules(currentState, False))
+        numOfNextStates = len(getPossibleNextStates(currentState, allowSuicides, allowRollover, allowLooping))
         if numOfNextStates != 0:
             return totalScore / numOfNextStates
         else:
             return 0
 
-def monte_carlo_search_move(currentState, num_simulations):
-    moves = getPossibleNextStatesForDefaultRules(currentState, False)
+# QQQ MONTE CARLO
+def monteCarlo(currentState, depth, allowSuicides=True, allowRollover=True, allowLooping=True):
+    # TODO QQQ
+    print("Um...")
 
-    scores = []
+# Function to assess the possible next moves using specified search algorithm (default is minimax)
+def assessPossibleMoves(currentState, searchAlgo=minimaxStr, allowSuicides=True, allowRollover=True, allowLooping=True):
 
-    for move in moves:
-        total_score = 0
-        for _ in range(num_simulations):
-            score = simulate(move)
-            total_score += score
-
-        average_score = total_score / num_simulations
-        scores.append((move, average_score))
-
-    best_move, _ = max(scores, key=lambda x: x[1])
-    return best_move
-
-def simulate(state):
-    terminal = isTerminal(state)
-    if terminal == player1Str:
-        return 1
-    elif terminal == player2Str:
-        return -1
-    elif terminal == drawStr:
-        return drawVal
-
-    return default_policy(state)
-
-def default_policy(state):
-    depth = 0
-    while not isTerminal(state):
-        state = random.choice(getPossibleNextStatesForDefaultRules(state, False))
-        depth += 1
-        if depth >= depthLimit:
-            return depthLimitVal
-
-    return evaluate(state)
-
-def evaluate(state):
-    # Load the list of winning positions from the file
-    with open('winning.txt', 'r') as file:
-        winning_positions = [line.strip() for line in file]
-    for position in winning_positions:
-        testState = GameState(int(position[0]), int(position[1]), int(position[3]), int(position[4]), 1)
-        if state == testState:
-            return 1
-
-    # Replace this with your own evaluation logic for non-winning positions
-    return 0
-
-# Function to find the minimax policy at a given state
-def findThePolicy(currentState):
-    bestScore = -arbitraryHighValue
-    bestNextState = None
-
-    for nextState in getPossibleNextStatesForDefaultRules(currentState):
-        score = minimax(nextState, 0)
-        if score > bestScore:
-            bestScore = score
-            bestNextState = nextState
-    return bestNextState
-
-
-# Function to assess the possible moves at a given state
-def assessPossibleMoves(currentState):
+    # Set the search algorithm
+    if searchAlgo == minimaxStr:
+        searchFunc = minimax
+    elif searchAlgo == expectimaxStr:
+        searchFunc = expectimax
+    elif searchAlgo == monteCarloStr:
+        searchFunc = monteCarlo
+    else:
+        print("ERROR: Invalid search algorithm, defaulting to minimax")
+        searchFunc = minimax
 
     print("Running assessment...")
 
     listOfNextMoveTuples = []
 
-    for nextState in getPossibleNextStatesForDefaultRules(currentState):
-        score = minimax(nextState, 0)
+    for nextState in getPossibleNextStates(currentState, allowSuicides, allowRollover, allowLooping):
+        score = searchFunc(nextState, 0, allowSuicides, allowRollover, allowLooping)
         listOfNextMoveTuples.append((nextState, score))
     
     # Print the assessment
-    print("=== === === === === MARK === === === === ===")
-    print(f"CURRENT State: {currentState}")
-    print(f"Number of Possible Moves: {len(listOfNextMoveTuples)}")
+    print(f"Number of Possible Moves: {len(listOfNextMoveTuples)}:")
+    for index, item in enumerate(listOfNextMoveTuples):
+        print(f"{index}: {item[0]}   -->   {item[1]}")
     print("")
-    for item in listOfNextMoveTuples:
-        print(f"For State: {item[0]}   -->   {item[1]}")
-    print("")
-    print(f"Key:   1 = Player 1 wins,   -1 = Player 2 wins,   {drawVal} = Draw (ie loop state),   {depthLimitVal} = Depth Limit Reached")
-    print("\n")
+    print(f"Key:   {player1Val} = Player 1 wins,   {player2Val} = Player 2 wins,   {drawVal} = Draw (ie loop state),   {depthLimitVal} = Depth Limit Reached")
     return listOfNextMoveTuples
-
-
-# Set useMinimax to false to use expectimax
-# Function to validate our minimax algorithm using data from the paper
-def validate(validationPath, outputPath, useMinimax=True):
-
-    print("\nBeginning validation...\n")
-
-    tupleList = []
-
-    lineCount = 0
-
-    # Open the file
-    with open(validationPath, 'r') as file:
-        for line in file:
-            # Print the current line
-            lineCount += 1
-            print(f"---> Testing line {lineCount}")
-
-            # Strip the line
-            line = line.strip()
-
-            # Now test the game state
-            testState = GameState(int(line[0]), int(line[1]), int(line[3]), int(line[4]), 1)
-            if useMinimax:
-                score = minimax(testState, 0)
-            else:
-                score = expectimax(testState, 0)
-
-            # Add the tuple to the list
-            tupleList.append((line, score))
-
-    # Export the results
-    print("\n === === === === === RESULTS === === === === ===")
-    with open(outputPath, 'w') as file:
-        for item in tupleList:
-            file.write(str(item[1]) + "\n")
-            print(f"For State: {item[0]}   -->   {item[1]}")
-    print("")
-    print(f"Key:   1 = Player 1 wins,   -1 = Player 2 wins,   {drawVal} = Draw (ie loop state),   {depthLimitVal} = Depth Limit Reached")
-    print("\n")
-
-
-# Function to analyze the results of the validation
-def analyze(resultsPath, useMinimax=True):
-
-    # Initialize the counts
-    winCount = 0
-    loseCount = 0
-    drawCount = 0
-    depthLimitCount = 0
-    errCount = 0
-
-    # Open the file of the results
-    with open(resultsPath, 'r') as file:
-        for line in file:
-            line = line.strip() 
-            if useMinimax:
-                if line == '1':
-                    winCount += 1
-                elif line == '-1':
-                    loseCount += 1
-                elif line == str(drawVal):
-                    drawCount += 1
-                elif line == str(depthLimitVal):
-                    depthLimitCount += 1
-                else:
-                    errCount += 1
-            else:
-                # Expectimax
-                lineAsNum = float(line)
-                if lineAsNum >= 0:
-                    winCount += 1
-                else:
-                    loseCount += 1
-
-    # Print the results
-    print(f"For File: {resultsPath}")
-    print(f"Win Count: {winCount}")
-    print(f"Lose Count: {loseCount}")
-    print(f"Draw Count: {drawCount}")
-    print(f"Depth Limit Count: {depthLimitCount}")
-    print(f"Error Count: {errCount}")
-    totalCount = winCount + loseCount + drawCount + depthLimitCount + errCount
-    print(f"Total Count: {totalCount}")
-    return winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount
-
-
-# Function to run the analytics   
-def run():
-    useMinimax = True
-
-    print("Validate: winning")
-    validate('data/winning.txt', 'results/winning-results.txt', useMinimax)
-    print("Validate: losing")
-    validate('data/losing.txt', 'results/losing-results.txt', useMinimax)
-    print("Validate: draws")
-    validate('data/draw.txt', 'results/draw-results.txt', useMinimax)
-
-    print("\nAnalyze: winning")
-    winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/winning-results.txt', useMinimax)
-    print(f"Accuracy: {winCount / totalCount}")
-    print("\nAnalyze: losing")
-    winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/losing-results.txt', useMinimax)
-    print(f"Accuracy: {loseCount / totalCount}")
-    print("\nAnalyze: draw")
-    winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/draw-results.txt', useMinimax)
-    print(f"Accuracy: {drawCount / totalCount}")
-    
-    useMinimax = False
-
-    print("Validate: winning")
-    validate('data/winning.txt', 'results/winning-results.txt', useMinimax)
-    print("Validate: losing")
-    validate('data/losing.txt', 'results/losing-results.txt', useMinimax)
-    print("Validate: draws")
-    validate('data/draw.txt', 'results/draw-results.txt', useMinimax)
-
-    print("\nAnalyze: winning")
-    winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/winning-results.txt', useMinimax)
-    print(f"Accuracy: {winCount / totalCount}")
-    print("\nAnalyze: losing")
-    winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/losing-results.txt', useMinimax)
-    print(f"Accuracy: {loseCount / totalCount}")
-    print("\nAnalyze: draw")
-    winCount, loseCount, drawCount, depthLimitCount, errCount, totalCount = analyze('results/draw-results.txt', useMinimax)
-    print(f"Accuracy: {drawCount / totalCount}")
-
-
-# Run the analytics
-run()
