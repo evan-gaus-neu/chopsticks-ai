@@ -39,13 +39,13 @@ Total Count: 100
 
 Analyze: winning
 For File: EXPECTIMAX-results/winning-results.txt
-Win Count: 61
-Lose Count: 11
+Win Count: 55
+Lose Count: 17
 Draw Count: 0
 Depth Limit Count: 0
 Error Count: 0
 Total Count: 72
---> Accuracy: 0.8472222222222222
+--> Accuracy: 0.7638888888888888
 
 Analyze: losing
 For File: EXPECTIMAX-results/losing-results.txt
@@ -59,8 +59,8 @@ Total Count: 21
 
 Analyze: draw
 For File: EXPECTIMAX-results/draw-results.txt
-Win Count: 65
-Lose Count: 35
+Win Count: 36
+Lose Count: 64
 Draw Count: 0
 Depth Limit Count: 0
 Error Count: 0
@@ -72,28 +72,28 @@ Total Count: 100
 
 Analyze: winning
 For File: MONTECARLO-results/winning-results.txt
-Win Count: 72
-Lose Count: 0
+Win Count: 68
+Lose Count: 4
 Draw Count: 0
 Depth Limit Count: 0
 Error Count: 0
 Total Count: 72
---> Accuracy: 1.0
+--> Accuracy: 0.9444444444444444
 
 Analyze: losing
 For File: MONTECARLO-results/losing-results.txt
-Win Count: 10
-Lose Count: 11
+Win Count: 7
+Lose Count: 14
 Draw Count: 0
 Depth Limit Count: 0
 Error Count: 0
 Total Count: 21
---> Accuracy: 0.5238095238095238
+--> Accuracy: 0.6666666666666666
 
 Analyze: draw
 For File: MONTECARLO-results/draw-results.txt
-Win Count: 96
-Lose Count: 4
+Win Count: 84
+Lose Count: 16
 Draw Count: 0
 Depth Limit Count: 0
 Error Count: 0

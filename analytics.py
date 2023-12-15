@@ -8,6 +8,9 @@ import model
 # (We're jumping in the game halfway through at the specificed "draw" state, so it's not going to have a whole history to check for a loop)
 # We kept the analytics to show that (for minimax), it doesn't find any wins or losses, as is expected
 
+# Values
+# Line between winning and losing (>= is winning)
+winLoseLine = 0.0
 
 # Set useMinimax to false to use expectimax
 # Function to validate our minimax algorithm using data from the paper
@@ -87,7 +90,7 @@ def analyze(resultsPath, searchAlgo=model.minimaxStr):
             else:
                 # Other algo
                 lineAsNum = float(line)
-                if lineAsNum >= 0:
+                if lineAsNum >= winLoseLine:
                     winCount += 1
                 else:
                     loseCount += 1

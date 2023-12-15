@@ -12,6 +12,7 @@ player1Val = 1
 player2Val = -1
 drawVal = 0.1
 depthLimitVal = 0.2
+zeroVal = 0
 
 analyticsDepthLimit = 10
 playDepthLimit = 9
@@ -393,17 +394,17 @@ def expectimax(currentState, depth, allowSuicides=True, allowRollover=True, allo
     elif status == player2Str:
         return player2Val
     elif status == drawStr:
-        return drawVal
+        return zeroVal
 
     # Check if we've reached the depth limit
     if allowLooping:
         # Use play depth limit
         if depth >= playDepthLimit:
-            return depthLimitVal
+            return zeroVal
     else:
         # Use analytics depth limit
         if depth >= analyticsDepthLimit:
-            return depthLimitVal
+            return zeroVal
     
     # If it's player 1's turn, we're maximizing
     if currentState.turn == 1:
@@ -437,7 +438,7 @@ def monteCarlo(currentState, depth, allowSuicides=True, allowRollover=True, allo
     elif status == player2Str:
         return player2Val
     elif status == drawStr:
-        return drawVal
+        return zeroVal
     
 
     # If it's player 1's turn, we're maximizing
@@ -495,17 +496,17 @@ def simulateRandomGame(currentState, depth, allowSuicides, allowRollover, allowL
     elif status == player2Str:
         return player2Val
     elif status == drawStr:
-        return drawVal
+        return zeroVal
 
     # Check if we've reached the depth limit
     if allowLooping:
         # Use play depth limit
         if depth >= playDepthLimit:
-            return depthLimitVal
+            return zeroVal
     else:
         # Use analytics depth limit
         if depth >= analyticsDepthLimit:
-            return depthLimitVal
+            return zeroVal
 
     # Get the next states
     nextStates = getPossibleNextStates(currentState, allowSuicides, allowRollover, allowLooping)
